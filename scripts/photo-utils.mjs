@@ -78,7 +78,7 @@ export async function saveWebCopy(src, dest) {
   }
   await sharp(input)
     .rotate() // apply EXIF orientation before metadata is stripped
-    .resize({ width: 3000, height: 3000, fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 88, mozjpeg: true })
+    .resize({ width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 85, mozjpeg: true })
     .toFile(dest);
 }

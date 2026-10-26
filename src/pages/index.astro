@@ -3,7 +3,7 @@ import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import PhotoGrid from '../components/PhotoGrid.astro';
 import JournalCard from '../components/JournalCard.astro';
-import { confirmedSpecies, getEntries, getPhotos, placeName } from '../lib/content';
+import { IMG, confirmedSpecies, getEntries, getPhotos, placeName } from '../lib/content';
 import { site } from '../site.config';
 
 const photos = await getPhotos();
@@ -24,7 +24,8 @@ const countries = new Set(photos.map((p) => p.data.country).filter(Boolean)).siz
         <Image
           src={hero.data.image}
           alt={hero.data.alt ?? hero.data.species ?? hero.data.title}
-          widths={[800, 1400, 2000, 2600]}
+          widths={IMG.large}
+          quality={IMG.quality}
           sizes="100vw"
           loading="eager"
           fetchpriority="high"

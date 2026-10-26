@@ -5,7 +5,7 @@
 // For each image it:
 //   • reads date, camera, lens, settings and GPS from the EXIF data
 //   • asks you for the title, species, location, category and journal trip
-//   • saves a web-sized copy (max 3000px, all metadata stripped, so the exact
+//   • saves a web-sized copy (max 2400px, all metadata stripped, so the exact
 //     GPS position isn't published) plus a .yaml file in src/content/photos/
 import yaml from 'js-yaml';
 import fs from 'node:fs';

@@ -1,6 +1,15 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { site } from '../site.config';
 
+// Image sizes shared across pages, so the same files are reused rather than
+// generated again (keeps the published site small). Quality 75 is visually
+// indistinguishable from higher settings on screen.
+export const IMG = {
+  quality: 75,
+  grid: [480, 800, 1400], // gallery tiles
+  large: [800, 1400, 2000], // full-width photos; 2000 is also the full-screen viewer size
+};
+
 export type Photo = CollectionEntry<'photos'>;
 export type Entry = CollectionEntry<'journal'>;
 

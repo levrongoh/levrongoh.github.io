@@ -1,7 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import type { Entry } from '../lib/content';
-import { formatRange, placeName } from '../lib/content';
+import { IMG, formatRange, placeName } from '../lib/content';
 
 interface Props {
   entry: Entry;
@@ -13,7 +13,7 @@ const d = entry.data;
 <a class="card" href={`/journal/${entry.id}/`}>
   {
     d.cover ? (
-      <Image src={d.cover} alt="" widths={[600, 900]} sizes="(max-width: 700px) 100vw, 33vw" />
+      <Image src={d.cover} alt="" widths={[480, 800]} quality={IMG.quality} sizes="(max-width: 700px) 100vw, 33vw" />
     ) : (
       <div class="blank" />
     )

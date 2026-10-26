@@ -2,11 +2,11 @@
 //
 //   npm run new-entry
 //   npm run new-entry -- ~/Pictures/cover.jpg     (optional cover photo)
-import sharp from 'sharp';
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
+import { saveWebCopy } from './photo-utils.mjs';
 
 const JOURNAL = path.resolve('src/content/journal');
 const rl = readline.createInterface({ input, output });
@@ -40,11 +40,7 @@ let cover = '';
 const coverSrc = process.argv[2];
 if (coverSrc) {
   const out = `${slug}.jpg`;
-  await sharp(path.resolve(coverSrc.replace(/^~/, process.env.HOME)))
-    .rotate()
-    .resize({ width: 3000, height: 3000, fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 88, mozjpeg: true })
-    .toFile(path.join(JOURNAL, out));
+  await saveWebCopy(path.resolve(coverSrc.replace(/^~/, process.env.HOME)), path.join(JOURNAL, out));
   cover = `cover: ./${out}\n`;
 }
 

@@ -4,7 +4,7 @@ import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import PhotoGrid from '../../components/PhotoGrid.astro';
 import MapView from '../../components/MapView.astro';
-import { formatRange, getEntries, getPhotos, placeName, type Entry } from '../../lib/content';
+import { IMG, formatRange, getEntries, getPhotos, placeName, type Entry } from '../../lib/content';
 import { photoPoints, tripPoints } from '../../lib/map';
 
 export async function getStaticPaths() {
@@ -26,12 +26,12 @@ const { Content } = await render(entry);
 const photos = (await getPhotos()).filter((p) => p.data.trip?.id === entry.id);
 const species = [...new Set(photos.map((p) => p.data.species).filter(Boolean))];
 const points = [...(await tripPoints([entry])), ...(await photoPoints(photos))];
-const og = d.cover ? (await getImage({ src: d.cover, width: 1200, format: 'jpg' })).src : undefined;
+const og = d.cover ? (await getImage({ src: d.cover, width: 1200, format: 'jpg', quality: IMG.quality })).src : undefined;
 ---
 
 <Base title={d.title} description={d.summary} image={og}>
   <header class="head">
-    {d.cover && <Image src={d.cover} alt="" widths={[800, 1400, 2000, 2600]} sizes="100vw" loading="eager" />}
+    {d.cover && <Image src={d.cover} alt="" widths={IMG.large} quality={IMG.quality} sizes="100vw" loading="eager" />}
     <div class="narrow text">
       <p class="eyebrow">{placeName(d)} · {formatRange(d.date, d.endDate)}</p>
       <h1>{d.title}</h1>

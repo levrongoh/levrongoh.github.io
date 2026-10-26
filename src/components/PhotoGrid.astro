@@ -1,7 +1,7 @@
 ---
 import { Image, getImage } from 'astro:assets';
 import type { Photo } from '../lib/content';
-import { formatDate, placeName } from '../lib/content';
+import { IMG, formatDate, placeName } from '../lib/content';
 
 interface Props {
   photos: Photo[];
@@ -11,7 +11,7 @@ const { photos } = Astro.props;
 const items = await Promise.all(
   photos.map(async (p) => ({
     p,
-    full: await getImage({ src: p.data.image, width: Math.min(2400, p.data.image.width), format: 'webp' }),
+    full: await getImage({ src: p.data.image, width: Math.min(2000, p.data.image.width), format: 'webp', quality: IMG.quality }),
   })),
 );
 ---
@@ -34,7 +34,8 @@ const items = await Promise.all(
         <Image
           src={p.data.image}
           alt={p.data.alt ?? p.data.species ?? p.data.title}
-          widths={[480, 800, 1200]}
+          widths={IMG.grid}
+          quality={IMG.quality}
           sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw"
           loading={i < 6 ? 'eager' : 'lazy'}
         />
