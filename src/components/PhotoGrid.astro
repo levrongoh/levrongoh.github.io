@@ -1,0 +1,225 @@
+---
+import { Image, getImage } from 'astro:assets';
+import type { Photo } from '../lib/content';
+import { formatDate, placeName } from '../lib/content';
+
+interface Props {
+  photos: Photo[];
+}
+const { photos } = Astro.props;
+
+const items = await Promise.all(
+  photos.map(async (p) => ({
+    p,
+    full: await getImage({ src: p.data.image, width: Math.min(2400, p.data.image.width), format: 'webp' }),
+  })),
+);
+---
+
+<div class="grid" data-grid>
+  {
+    items.map(({ p, full }, i) => (
+      <a
+        class="tile"
+        href={`/photos/${p.id}/`}
+        data-category={p.data.category}
+        data-full={full.src}
+        data-title={p.data.title}
+        data-species={p.data.species ?? ''}
+        data-sci={p.data.scientific ?? ''}
+        data-meta={[placeName(p.data), formatDate(p.data.date)].join(' · ')}
+        data-gear={[p.data.camera, p.data.lens].filter(Boolean).join(' · ')}
+        data-settings={p.data.settings ?? ''}
+      >
+        <Image
+          src={p.data.image}
+          alt={p.data.alt ?? p.data.species ?? p.data.title}
+          widths={[480, 800, 1200]}
+          sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw"
+          loading={i < 6 ? 'eager' : 'lazy'}
+        />
+        <span class="cap">
+          <span class="t">{p.data.species ?? p.data.title}</span>
+          <span class="l">{p.data.location}</span>
+        </span>
+      </a>
+    ))
+  }
+</div>
+
+<dialog class="lightbox" data-lightbox aria-label="Photo viewer">
+  <button class="lb-btn lb-close" data-close aria-label="Close">✕</button>
+  <button class="lb-btn lb-prev" data-prev aria-label="Previous photo">‹</button>
+  <button class="lb-btn lb-next" data-next aria-label="Next photo">›</button>
+  <figure>
+    <img data-img alt="" />
+    <figcaption>
+      <div>
+        <strong data-title></strong>
+        <span class="sci" data-sci></span>
+        <div class="muted" data-meta></div>
+      </div>
+      <div class="right">
+        <div class="small" data-gear></div>
+        <div class="muted small" data-settings></div>
+        <a data-link class="link-arrow">Details →</a>
+      </div>
+    </figcaption>
+  </figure>
+</dialog>
+
+<style>
+  .grid {
+    columns: 3 320px;
+    column-gap: 14px;
+  }
+  .tile {
+    position: relative;
+    display: block;
+    margin-bottom: 14px;
+    break-inside: avoid;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--bg-raised);
+    text-decoration: none;
+  }
+  .tile[hidden] { display: none; }
+  .tile img {
+    width: 100%;
+    transition: transform 0.6s ease, filter 0.4s ease;
+  }
+  .tile:hover img { transform: scale(1.03); filter: brightness(0.8); }
+  .cap {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 2.5rem 1rem 0.9rem;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .tile:hover .cap,
+  .tile:focus-visible .cap { opacity: 1; transform: none; }
+  .cap .t { font-family: var(--serif); font-size: 1.1rem; color: #fff; }
+  .cap .l { font-size: 0.78rem; color: #ddd; }
+  @media (hover: none) {
+    .cap { opacity: 1; transform: none; }
+  }
+
+  .lightbox {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgba(8, 8, 6, 0.97);
+    color: var(--text);
+  }
+  .lightbox::backdrop { background: rgba(0, 0, 0, 0.8); }
+  figure {
+    margin: 0;
+    width: 100%;
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    padding: 56px 64px 0;
+  }
+  figure img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    min-height: 0;
+  }
+  figcaption {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem 2rem;
+    flex-wrap: wrap;
+    padding: 1rem 0 1.25rem;
+    font-size: 0.9rem;
+  }
+  figcaption strong { font-family: var(--serif); font-weight: 400; font-size: 1.3rem; margin-right: 0.6rem; }
+  .right { text-align: right; }
+  .small { font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .lb-btn {
+    position: absolute;
+    z-index: 2;
+    background: none;
+    border: 0;
+    color: var(--text);
+    font-size: 2.2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.5rem 0.9rem;
+    opacity: 0.7;
+  }
+  .lb-btn:hover { opacity: 1; color: var(--accent); }
+  .lb-close { top: 8px; right: 8px; font-size: 1.3rem; }
+  .lb-prev { left: 4px; top: 45%; }
+  .lb-next { right: 4px; top: 45%; }
+  @media (max-width: 640px) {
+    figure { padding: 52px 12px 0; }
+    .right { text-align: left; }
+    .lb-prev, .lb-next { top: auto; bottom: 8px; }
+  }
+</style>
+
+<script>
+  for (const grid of document.querySelectorAll<HTMLElement>('[data-grid]')) {
+    const dialog = grid.nextElementSibling as HTMLDialogElement;
+    const $ = <T extends HTMLElement>(s: string) => dialog.querySelector<T>(s)!;
+    const img = $<HTMLImageElement>('[data-img]');
+    let current = 0;
+
+    const visible = () => [...grid.querySelectorAll<HTMLAnchorElement>('.tile:not([hidden])')];
+
+    const show = (i: number) => {
+      const tiles = visible();
+      if (!tiles.length) return;
+      current = (i + tiles.length) % tiles.length;
+      const t = tiles[current].dataset;
+      img.src = t.full!;
+      img.alt = t.species || t.title || '';
+      $('[data-title]').textContent = t.species || t.title || '';
+      $('[data-sci]').textContent = t.sci || '';
+      $('[data-meta]').textContent = (t.species ? `${t.title} · ` : '') + t.meta;
+      $('[data-gear]').textContent = t.gear || '';
+      $('[data-settings]').textContent = t.settings || '';
+      $<HTMLAnchorElement>('[data-link]').href = tiles[current].href;
+    };
+
+    grid.addEventListener('click', (e) => {
+      const tile = (e.target as HTMLElement).closest<HTMLAnchorElement>('.tile');
+      if (!tile || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      show(visible().indexOf(tile));
+      dialog.showModal();
+    });
+
+    $('[data-close]').addEventListener('click', () => dialog.close());
+    $('[data-prev]').addEventListener('click', () => show(current - 1));
+    $('[data-next]').addEventListener('click', () => show(current + 1));
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog || e.target === img.parentElement) dialog.close();
+    });
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') show(current - 1);
+      if (e.key === 'ArrowRight') show(current + 1);
+    });
+
+    // Swipe on touch screens
+    let x0: number | null = null;
+    dialog.addEventListener('touchstart', (e) => (x0 = e.touches[0].clientX), { passive: true });
+    dialog.addEventListener('touchend', (e) => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 50) show(current + (dx < 0 ? 1 : -1));
+      x0 = null;
+    });
+  }
+</script>

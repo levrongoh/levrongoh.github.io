@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+import JournalCard from '../../components/JournalCard.astro';
+import { getEntries } from '../../lib/content';
+
+const entries = await getEntries();
+const byYear = Object.entries(
+  Object.groupBy(entries, (e) => String(e.data.date.getUTCFullYear())),
+).sort(([a], [b]) => Number(b) - Number(a));
+---
+
+<Base title="Journal" description="A field journal of travels and wildlife encounters.">
+  <div class="wrap">
+    <header class="page-head">
+      <p class="eyebrow">Field Journal</p>
+      <h1>Travels & encounters</h1>
+      <p>Notes from the field: where I went, what turned up, and what it took to get the shot.</p>
+    </header>
+
+    {
+      byYear.map(([year, list]) => (
+        <section class="year">
+          <h2 class="eyebrow">{year}</h2>
+          <div class="cards">
+            {list!.map((e) => (
+              <JournalCard entry={e} />
+            ))}
+          </div>
+        </section>
+      ))
+    }
+    {entries.length === 0 && <p class="muted">No entries yet.</p>}
+  </div>
+</Base>
+
+<style>
+  .year { margin-bottom: 4rem; }
+  .year h2 { font-family: var(--sans); font-size: 0.8rem; border-bottom: 1px solid var(--line); padding-bottom: 0.75rem; margin-bottom: 2rem; }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    gap: 3rem 1.75rem;
+  }
+</style>

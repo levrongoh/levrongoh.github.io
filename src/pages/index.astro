@@ -1,0 +1,121 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import PhotoGrid from '../components/PhotoGrid.astro';
+import JournalCard from '../components/JournalCard.astro';
+import { confirmedSpecies, getEntries, getPhotos, placeName } from '../lib/content';
+import { site } from '../site.config';
+
+const photos = await getPhotos();
+const entries = await getEntries();
+const featured = photos.filter((p) => p.data.featured);
+const hero = featured[0] ?? photos[0];
+const grid = (featured.length ? featured : photos).slice(0, 9);
+
+const species = new Set(photos.map(confirmedSpecies).filter(Boolean)).size;
+const places = new Set(photos.map((p) => p.data.location).filter((l) => l !== 'TBC')).size;
+const countries = new Set(photos.map((p) => p.data.country).filter(Boolean)).size;
+---
+
+<Base>
+  {
+    hero && (
+      <section class="hero">
+        <Image
+          src={hero.data.image}
+          alt={hero.data.alt ?? hero.data.species ?? hero.data.title}
+          widths={[800, 1400, 2000, 2600]}
+          sizes="100vw"
+          loading="eager"
+          fetchpriority="high"
+        />
+        <div class="hero-text wrap">
+          <p class="eyebrow">Wildlife & Nature Photography</p>
+          <h1>{site.tagline}</h1>
+          <p class="credit">
+            <a href={`/photos/${hero.id}/`}>
+              {hero.data.species ?? hero.data.title} · {placeName(hero.data)}
+            </a>
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="stats wrap">
+    <div><strong>{photos.length}</strong><span>Photographs</span></div>
+    <div><strong>{species}</strong><span>Species</span></div>
+    <div><strong>{places}</strong><span>Places</span></div>
+    <div><strong>{countries}</strong><span>Countries</span></div>
+  </section>
+
+  <section class="section wrap">
+    <div class="section-head">
+      <h2>Selected work</h2>
+      <a class="link-arrow" href="/gallery/">Full gallery →</a>
+    </div>
+    <PhotoGrid photos={grid} />
+  </section>
+
+  {
+    entries.length > 0 && (
+      <section class="section wrap">
+        <div class="section-head">
+          <h2>From the field journal</h2>
+          <a class="link-arrow" href="/journal/">All entries →</a>
+        </div>
+        <div class="cards">
+          {entries.slice(0, 3).map((e) => (
+            <JournalCard entry={e} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    height: min(88vh, 900px);
+    min-height: 460px;
+    overflow: hidden;
+  }
+  .hero img { width: 100%; height: 100%; object-fit: cover; }
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 30%, rgba(17, 17, 14, 0.92));
+  }
+  .hero-text {
+    position: absolute;
+    z-index: 1;
+    inset: auto 0 clamp(28px, 6vw, 72px) 0;
+  }
+  .hero-text h1 { max-width: 18ch; color: #fff; }
+  .hero-text .eyebrow { color: #d8d2c4; }
+  .credit { margin: 0; font-size: 0.85rem; }
+  .credit a { color: #d8d2c4; text-decoration: none; }
+  .credit a:hover { color: var(--accent); }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    padding-top: 2.5rem;
+    padding-bottom: 0.5rem;
+  }
+  .stats div { border-left: 1px solid var(--line); padding-left: 1rem; }
+  .stats strong { display: block; font: 300 clamp(1.8rem, 4vw, 2.8rem) / 1 var(--serif); }
+  .stats span { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: repeat(2, 1fr); row-gap: 1.5rem; }
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    gap: 2.5rem 1.75rem;
+  }
+</style>

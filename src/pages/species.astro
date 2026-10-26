@@ -1,0 +1,78 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { confirmedSpecies, formatDate, getPhotos, type Photo } from '../lib/content';
+import { site } from '../site.config';
+
+const photos = await getPhotos();
+const map = new Map<string, Photo[]>();
+for (const p of photos) {
+  const name = confirmedSpecies(p);
+  if (!name) continue;
+  map.set(name, [...(map.get(name) ?? []), p]);
+}
+const species = [...map.entries()]
+  .map(([name, list]) => {
+    const oldest = list.reduce((a, b) => (a.data.date < b.data.date ? a : b));
+    return {
+      name,
+      sci: list.find((p) => p.data.scientific)?.data.scientific,
+      category: list[0].data.category,
+      cover: list.find((p) => p.data.featured) ?? list[0],
+      count: list.length,
+      first: oldest.data.date,
+      places: [...new Set(list.map((p) => p.data.location))],
+    };
+  })
+  .sort((a, b) => a.name.localeCompare(b.name));
+const groups = site.categories
+  .map((c) => [c, species.filter((s) => s.category === c)] as const)
+  .filter(([, l]) => l.length);
+---
+
+<Base title="Species" description="Every species photographed so far.">
+  <div class="wrap">
+    <header class="page-head">
+      <p class="eyebrow">Species list</p>
+      <h1>{species.length} species and counting</h1>
+      <p>Every species I've photographed, built automatically from the gallery.</p>
+    </header>
+
+    {
+      groups.map(([cat, list]) => (
+        <section class="group">
+          <h2 class="eyebrow">{cat} · {list.length}</h2>
+          <ul>
+            {list.map((s) => (
+              <li>
+                <a href={`/photos/${s.cover.id}/`}>
+                  <Image src={s.cover.data.image} alt="" width={120} height={120} fit="cover" />
+                  <div>
+                    <strong>{s.name}</strong>
+                    {s.sci && <span class="sci">{s.sci}</span>}
+                    <span class="muted small">
+                      First photographed {formatDate(s.first)} · {s.places.join(', ')}
+                      {s.count > 1 && ` · ${s.count} photos`}
+                    </span>
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</Base>
+
+<style>
+  .group { margin-bottom: 3.5rem; }
+  .group h2 { font-family: var(--sans); font-size: 0.8rem; border-bottom: 1px solid var(--line); padding-bottom: 0.75rem; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 0.25rem 2rem; }
+  li a { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; text-decoration: none; border-bottom: 1px solid var(--line); }
+  img { width: 60px; height: 60px; object-fit: cover; border-radius: 3px; flex-shrink: 0; }
+  strong { display: block; font: 400 1.15rem var(--serif); }
+  li a:hover strong { color: var(--accent); }
+  .sci { display: block; font-size: 0.9rem; }
+  .small { display: block; font-size: 0.78rem; }
+</style>

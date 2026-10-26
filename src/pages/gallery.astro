@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro';
+import PhotoGrid from '../components/PhotoGrid.astro';
+import { getPhotos } from '../lib/content';
+import { site } from '../site.config';
+
+const photos = await getPhotos();
+const used = site.categories.filter((c) => photos.some((p) => p.data.category === c));
+---
+
+<Base title="Gallery" description={`Wildlife and nature photographs by ${site.name}.`}>
+  <div class="wrap">
+    <header class="page-head">
+      <p class="eyebrow">Gallery</p>
+      <h1>Encounters</h1>
+      <p>Tap any photograph to view it full screen, with the story and settings behind it.</p>
+    </header>
+
+    <div class="filters" role="toolbar" aria-label="Filter by category">
+      <button aria-pressed="true" data-filter="">All <span>{photos.length}</span></button>
+      {
+        used.map((c) => (
+          <button aria-pressed="false" data-filter={c}>
+            {c} <span>{photos.filter((p) => p.data.category === c).length}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <PhotoGrid photos={photos} />
+  </div>
+</Base>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  button {
+    font: 500 0.8rem var(--sans);
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    padding: 0.5em 1.1em;
+    cursor: pointer;
+  }
+  button span { opacity: 0.6; margin-left: 0.25em; }
+  button:hover { color: var(--text); border-color: var(--muted); }
+  button[aria-pressed='true'] { color: var(--bg); background: var(--text); border-color: var(--text); }
+</style>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const tiles = document.querySelectorAll<HTMLElement>('[data-grid] .tile');
+  const apply = (cat: string) => {
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === cat)));
+    tiles.forEach((t) => (t.hidden = !!cat && t.dataset.category !== cat));
+  };
+  buttons.forEach((b) =>
+    b.addEventListener('click', () => {
+      apply(b.dataset.filter!);
+      history.replaceState(null, '', b.dataset.filter ? `#${encodeURIComponent(b.dataset.filter)}` : location.pathname);
+    }),
+  );
+  const initial = decodeURIComponent(location.hash.slice(1));
+  if (initial && [...buttons].some((b) => b.dataset.filter === initial)) apply(initial);
+</script>

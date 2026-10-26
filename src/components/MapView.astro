@@ -1,0 +1,81 @@
+---
+export interface MapPoint {
+  lat: number;
+  lng: number;
+  title: string;
+  sub: string;
+  href: string;
+  thumb?: string;
+  kind: 'photo' | 'trip';
+}
+interface Props {
+  points: MapPoint[];
+  height?: string;
+}
+const { points, height = '70vh' } = Astro.props;
+---
+
+<div class="map" data-map data-points={JSON.stringify(points)} style={`height:${height}`}></div>
+
+<style>
+  .map {
+    width: 100%;
+    min-height: 320px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: var(--bg-raised);
+  }
+  /* Darken the standard OpenStreetMap tiles to match the site */
+  .map :global(.dark-tiles) { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.5); }
+  .map :global(.leaflet-control-attribution) { background: rgba(17, 17, 14, 0.7); color: var(--muted); }
+  .map :global(.leaflet-control-attribution a) { color: var(--muted); }
+  .map :global(.leaflet-popup-content-wrapper),
+  .map :global(.leaflet-popup-tip) { background: var(--bg-raised); color: var(--text); border-radius: 4px; }
+  .map :global(.leaflet-popup-content) { margin: 10px; font: 13px/1.4 var(--sans); }
+  .map :global(.pop) { display: flex; gap: 10px; align-items: center; text-decoration: none; color: var(--text); }
+  .map :global(.pop img) { width: 64px; height: 64px; object-fit: cover; border-radius: 3px; }
+  .map :global(.pop strong) { display: block; font-family: var(--serif); font-weight: 400; font-size: 15px; }
+  .map :global(.pop span) { color: var(--muted); font-size: 12px; }
+  .map :global(.pin) {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent); border: 2px solid #11110e; box-shadow: 0 0 0 1px var(--accent);
+  }
+  .map :global(.pin.trip) { background: #11110e; width: 18px; height: 18px; border: 3px solid var(--accent); }
+</style>
+
+<script>
+  import L from 'leaflet';
+  import 'leaflet/dist/leaflet.css';
+
+  type P = { lat: number; lng: number; title: string; sub: string; href: string; thumb?: string; kind: string };
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+
+  for (const el of document.querySelectorAll<HTMLElement>('[data-map]')) {
+    const points: P[] = JSON.parse(el.dataset.points || '[]');
+    const map = L.map(el, { scrollWheelZoom: false, worldCopyJump: true });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 16,
+      className: 'dark-tiles',
+    }).addTo(map);
+
+    // Spread out points that share the exact same spot so each stays clickable.
+    const seen = new Map<string, number>();
+    const markers = points.map((p) => {
+      const key = `${p.lat},${p.lng}`;
+      const n = seen.get(key) ?? 0;
+      seen.set(key, n + 1);
+      const angle = n * 2.4, r = n ? 0.0012 * Math.sqrt(n) : 0;
+      const icon = L.divIcon({ className: '', html: `<div class="pin ${p.kind}"></div>`, iconSize: [18, 18] });
+      return L.marker([p.lat + r * Math.sin(angle), p.lng + r * Math.cos(angle)], { icon, zIndexOffset: p.kind === 'trip' ? 1000 : 0 })
+        .bindPopup(
+          `<a class="pop" href="${p.href}">${p.thumb ? `<img src="${p.thumb}" alt="">` : ''}<div><strong>${esc(p.title)}</strong><span>${esc(p.sub)}</span></div></a>`,
+        )
+        .addTo(map);
+    });
+
+    if (markers.length) map.fitBounds(L.featureGroup(markers).getBounds().pad(0.25), { maxZoom: 12 });
+    else map.setView([1.35, 103.82], 10);
+    el.addEventListener('click', () => map.scrollWheelZoom.enable(), { once: true });
+  }
+</script>

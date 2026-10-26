@@ -1,0 +1,45 @@
+---
+import { Image } from 'astro:assets';
+import type { Entry } from '../lib/content';
+import { formatRange, placeName } from '../lib/content';
+
+interface Props {
+  entry: Entry;
+}
+const { entry } = Astro.props;
+const d = entry.data;
+---
+
+<a class="card" href={`/journal/${entry.id}/`}>
+  {
+    d.cover ? (
+      <Image src={d.cover} alt="" widths={[600, 900]} sizes="(max-width: 700px) 100vw, 33vw" />
+    ) : (
+      <div class="blank" />
+    )
+  }
+  <div class="body">
+    <p class="eyebrow">{placeName(d)} · {formatRange(d.date, d.endDate)}</p>
+    <h3>{d.title}{d.draft && <span class="chip">Draft</span>}</h3>
+    <p class="muted">{d.summary}</p>
+  </div>
+</a>
+
+<style>
+  .card { display: block; text-decoration: none; }
+  .card img, .blank {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: 3px;
+    background: var(--bg-raised);
+    transition: filter 0.3s;
+  }
+  .card:hover img { filter: brightness(0.85); }
+  .body { padding-top: 1rem; }
+  .eyebrow { margin: 0 0 0.4rem; }
+  h3 { font-size: 1.45rem; margin: 0 0 0.4rem; }
+  .card:hover h3 { color: var(--accent); }
+  .muted { margin: 0; font-size: 0.95rem; }
+  .chip { margin-left: 0.6rem; vertical-align: middle; }
+</style>

@@ -1,0 +1,28 @@
+---
+import { site } from '../site.config';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap row">
+    <p>© {year} {site.name}. All photographs are copyrighted and may not be used without permission.</p>
+    <p class="links">
+      {site.social.instagram && <a href={site.social.instagram} rel="me">Instagram</a>}
+      {site.social.email && <a href={`mailto:${site.social.email}`}>Email</a>}
+      <span class="muted">Based in {site.basedIn}</span>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--line);
+    padding: 2.5rem 0;
+    margin-top: 4rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .row { display: flex; justify-content: space-between; gap: 1rem 2rem; flex-wrap: wrap; }
+  p { margin: 0; }
+  .links { display: flex; gap: 1.5rem; }
+</style>

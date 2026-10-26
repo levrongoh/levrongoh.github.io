@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import MapView from '../components/MapView.astro';
+import { getEntries, getPhotos } from '../lib/content';
+import { photoPoints, tripPoints } from '../lib/map';
+
+const points = [...(await tripPoints(await getEntries())), ...(await photoPoints(await getPhotos()))];
+---
+
+<Base title="Map" description="Where each photograph and journal entry happened.">
+  <div class="wrap">
+    <header class="page-head">
+      <p class="eyebrow">Map</p>
+      <h1>Where it happened</h1>
+      <p>
+        <span class="key photo"></span> Photograph &nbsp;&nbsp; <span class="key trip"></span> Journal entry. Locations are
+        approximate, to protect sensitive sites.
+      </p>
+    </header>
+    <MapView points={points} />
+  </div>
+</Base>
+
+<style>
+  .key { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 0.3rem; }
+  .key.photo { background: var(--accent); }
+  .key.trip { border: 3px solid var(--accent); }
+</style>
