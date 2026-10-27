@@ -16,6 +16,7 @@ const used = site.categories.filter((c) => photos.some((p) => p.data.category ==
       <p>Tap any photograph to view it full screen, with the story and settings behind it.</p>
     </header>
 
+    <div class="controls">
     <div class="filters" role="toolbar" aria-label="Filter by category">
       <button aria-pressed="true" data-filter="">All <span>{photos.length}</span></button>
       {
@@ -26,17 +27,53 @@ const used = site.categories.filter((c) => photos.some((p) => p.data.category ==
         ))
       }
     </div>
+    <label class="sort">
+      Sort
+      <select data-sort aria-label="Sort photos">
+        <option value="top">Top rated</option>
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+      </select>
+    </label>
+    </div>
 
     <PhotoGrid photos={photos} />
   </div>
 </Base>
 
 <style>
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
   .filters {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 2rem;
+  }
+  .sort {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .sort select {
+    font: 500 0.85rem var(--sans);
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--text);
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    padding: 0.45em 1em;
+    cursor: pointer;
   }
   button {
     font: 500 0.8rem var(--sans);
@@ -68,4 +105,23 @@ const used = site.categories.filter((c) => photos.some((p) => p.data.category ==
   );
   const initial = decodeURIComponent(location.hash.slice(1));
   if (initial && [...buttons].some((b) => b.dataset.filter === initial)) apply(initial);
+
+  // Sorting: reorder the tiles in place. "Top rated" is the order the page loads in.
+  const grid = document.querySelector<HTMLElement>('[data-grid]')!;
+  const original = [...grid.children] as HTMLElement[];
+  const select = document.querySelector<HTMLSelectElement>('[data-sort]')!;
+  const sortBy = (mode: string) => {
+    const tiles = [...original];
+    if (mode === 'newest') tiles.sort((a, b) => b.dataset.date!.localeCompare(a.dataset.date!));
+    if (mode === 'oldest') tiles.sort((a, b) => a.dataset.date!.localeCompare(b.dataset.date!));
+    grid.append(...tiles);
+    try { localStorage.setItem('gallery-sort', mode); } catch {}
+  };
+  select.addEventListener('change', () => sortBy(select.value));
+  let saved: string | null = null;
+  try { saved = localStorage.getItem('gallery-sort'); } catch {}
+  if (saved && saved !== 'top' && [...select.options].some((o) => o.value === saved)) {
+    select.value = saved;
+    sortBy(saved);
+  }
 </script>

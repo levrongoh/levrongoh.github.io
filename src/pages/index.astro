@@ -6,7 +6,7 @@ import JournalCard from '../components/JournalCard.astro';
 import { IMG, confirmedSpecies, formatDate, getEntries, getPhotos, type Photo } from '../lib/content';
 import { Content as Intro, frontmatter as intro } from '../home.md';
 
-const photos = await getPhotos(); // already ordered: most stars first, then oldest
+const photos = await getPhotos(); // already ordered: most stars first, then newest
 const entries = await getEntries();
 
 const newestFirst = (a: Photo, b: Photo) => b.data.date.valueOf() - a.data.date.valueOf();

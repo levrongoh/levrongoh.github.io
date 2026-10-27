@@ -17,14 +17,14 @@ const newestFirst = <T extends { data: { date: Date } }>(a: T, b: T) =>
   b.data.date.valueOf() - a.data.date.valueOf();
 
 /**
- * Photo order used everywhere on the site: highest-rated first, then earliest
- * date first. Unrated photos (rating 0) come after all rated ones.
+ * Default photo order used across the site: highest-rated first, then newest
+ * first. Unrated photos (rating 0) come after all rated ones.
  */
-const byRatingThenOldest = (a: Photo, b: Photo) =>
-  b.data.rating - a.data.rating || a.data.date.valueOf() - b.data.date.valueOf() || a.id.localeCompare(b.id);
+const byRatingThenNewest = (a: Photo, b: Photo) =>
+  b.data.rating - a.data.rating || b.data.date.valueOf() - a.data.date.valueOf() || b.id.localeCompare(a.id);
 
 export async function getPhotos(): Promise<Photo[]> {
-  return (await getCollection('photos', (p) => !p.data.hidden)).sort(byRatingThenOldest);
+  return (await getCollection('photos', (p) => !p.data.hidden)).sort(byRatingThenNewest);
 }
 
 export async function getEntries(): Promise<Entry[]> {

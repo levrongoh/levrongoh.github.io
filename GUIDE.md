@@ -167,7 +167,8 @@ npm run add-photo -- ~/Pictures/owl.jpg
 Terminal asks you questions one by one (species, location, and so on). Press **Return** to accept the suggestion shown in [brackets].
 
 ### Controlling the order
-- **Stars (1–5)** decide what shows first. The order is 5★ → 4★ → … → unrated, and within each group the oldest photo comes first.
+- **Stars (1–5)** decide what shows first. The order is 5★ → 4★ → … → unrated, and within each group the newest photo comes first.
+- **Visitors can re-sort the gallery** with the **Sort** menu: *Top rated* (the default), *Newest first* or *Oldest first*. The browser remembers their choice.
 - **Featured** puts a photo on the home page. The first featured photo becomes the large photo at the top.
 - Set both in the photo manager (`npm run rate`) or in the photo's `.yaml` file ([Part 6](#part-6-how-to-edit-photo-details-manually)).
 
@@ -428,7 +429,7 @@ Keep the 'single quotes' around each value and the comma at the end of the line.
 | Problem | Fix |
 |---|---|
 | **Red ✗ in the Actions tab** | Click the failed run → **build** → read the red lines. It's almost always a typo: a misspelled category or a missing space after `:` in a `.yaml` file, or a photo path in a journal entry that doesn't match a real file. Fix it, then commit and push again. Your old site stays online until the fix goes through. |
-| **Photo isn't showing** | Check for `hidden: true` in its `.yaml` file. The photo might also be further down the list: unrated photos appear after rated ones, oldest first. |
+| **Photo isn't showing** | Check for `hidden: true` in its `.yaml` file. The photo might also be further down the list: unrated photos appear after rated ones, newest first. |
 | **Journal entry isn't showing** | It still has `draft: true`. |
 | **Text in a journal entry runs together** | Leave an empty line between paragraphs. |
 | **A photo in a journal entry is broken** | Check the path: `../photos/NAME.jpg` for gallery photos, `./NAME.jpg` for images in the journal folder. Names must match exactly, including `.jpg`. |

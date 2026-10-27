@@ -38,7 +38,7 @@ High above, a **Knobbed Hornbill** sat in the canopy with its huge, bright casqu
 
 ## Day 2: The big bill and the tiny one
 
-![Great-billed Kingfisher](../photos/2026-05-31-dsc04275.jpg)
+![Great-billed Kingfisher](../photos/2026-05-31-dsc04247.jpg)
 
 Day two brought the **Great-billed Kingfisher**: a pale head, dark wings and an enormous black bill. I caught one in flight against the rocks at 1/3200s. [Where was this? Along the shore, a river mouth, a mangrove?]
 
