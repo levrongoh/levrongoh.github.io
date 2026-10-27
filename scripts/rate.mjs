@@ -137,7 +137,7 @@ const PAGE = /* html */ `<!doctype html>
 <header>
   <h1>Photo manager</h1>
   <div class="tabs" id="tabs"></div>
-  <span class="hint">Order on the site: most stars first, then newest first. Click a star again to clear it. Changes save automatically.</span>
+  <span class="hint">Order on the site: featured first, then most stars, then newest. Click a star again to clear it. Changes save automatically.</span>
 </header>
 <main id="grid"></main>
 <dialog id="big"><img alt=""></dialog>
@@ -157,7 +157,7 @@ async function load() {
 }
 
 function order(list) {
-  return list.sort((a, b) => (b.rating || 0) - (a.rating || 0) || b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  return list.sort((a, b) => Number(!!b.featured) - Number(!!a.featured) || (b.rating || 0) - (a.rating || 0) || b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
 }
 
 function renderTabs() {

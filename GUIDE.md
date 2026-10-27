@@ -167,8 +167,8 @@ npm run add-photo -- ~/Pictures/owl.jpg
 Terminal asks you questions one by one (species, location, and so on). Press **Return** to accept the suggestion shown in [brackets].
 
 ### Controlling the order
-- **Stars (1–5)** decide what shows first. The order is 5★ → 4★ → … → unrated, and within each group the newest photo comes first.
-- **Visitors can re-sort the gallery** with the **Sort** menu: *Top rated* (the default), *Newest first* or *Oldest first*. The browser remembers their choice.
+- **The order is:** Featured photos first, then by stars (5★ → 4★ → … → unrated), then newest first within each group.
+- **Visitors can re-sort the gallery** with the **Sort** menu: *Featured first* (the default), *Newest first* or *Oldest first*. The browser remembers their choice.
 - **Featured** puts a photo on the home page. The first featured photo becomes the large photo at the top.
 - Set both in the photo manager (`npm run rate`) or in the photo's `.yaml` file ([Part 6](#part-6-how-to-edit-photo-details-manually)).
 

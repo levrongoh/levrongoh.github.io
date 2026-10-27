@@ -30,7 +30,7 @@ const used = site.categories.filter((c) => photos.some((p) => p.data.category ==
     <label class="sort">
       Sort
       <select data-sort aria-label="Sort photos">
-        <option value="top">Top rated</option>
+        <option value="top">Featured first</option>
         <option value="newest">Newest first</option>
         <option value="oldest">Oldest first</option>
       </select>
@@ -106,7 +106,7 @@ const used = site.categories.filter((c) => photos.some((p) => p.data.category ==
   const initial = decodeURIComponent(location.hash.slice(1));
   if (initial && [...buttons].some((b) => b.dataset.filter === initial)) apply(initial);
 
-  // Sorting: reorder the tiles in place. "Top rated" is the order the page loads in.
+  // Sorting: reorder the tiles in place. "Featured first" is the order the page loads in.
   const grid = document.querySelector<HTMLElement>('[data-grid]')!;
   const original = [...grid.children] as HTMLElement[];
   const select = document.querySelector<HTMLSelectElement>('[data-sort]')!;
