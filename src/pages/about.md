@@ -17,9 +17,10 @@ This site is part portfolio, part field journal: a record of the places I've bee
 
 ## Gear
 
-- Camera body
-- 150–600mm telephoto
-- 100mm macro
+- Sony A7C II
+- Sony FE 100–400mm F4.5–5.6 GM OSS
+- Tamron 70–300mm F4.5–6.3 Di III RXD
+- Sony FE 20–70mm F4 G
 - A lot of patience
 
 ## Prints & licensing

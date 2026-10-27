@@ -8,7 +8,8 @@ A step-by-step guide to publishing and maintaining your site.
 - [Part 4: How to add photos](#part-4-how-to-add-photos)
 - [Part 5: How to delete photos](#part-5-how-to-delete-photos)
 - [Part 6: How to edit photo details manually](#part-6-how-to-edit-photo-details-manually)
-- [Part 7: When something goes wrong](#part-7-when-something-goes-wrong)
+- [Part 7: How to edit journal entries and the About page](#part-7-how-to-edit-journal-entries-and-the-about-page)
+- [Part 8: When something goes wrong](#part-8-when-something-goes-wrong)
 
 **How it works:** your website lives in the folder `Portfolio Website` on your Desktop. GitHub keeps an online copy of that folder. Every time you send changes to GitHub (called "pushing"), GitHub rebuilds your site and publishes it, usually within 2–3 minutes. You never upload anything by hand.
 
@@ -257,27 +258,180 @@ featured: true
 5. **To remove a field,** delete the whole line.
 6. Save, then check the preview. If something's wrong, the preview page and Terminal say which file and line has the problem.
 
-### Writing a journal entry
+---
+
+## Part 7: How to edit journal entries and the About page
+
+Journal entries and the About page are plain text files written in **Markdown**, a simple way to add formatting with symbols. Open them the same way as photo files: right-click → **Open With → TextEdit** (in plain-text mode), or use Visual Studio Code.
+
+Keep `npm run dev` running while you write. Every time you save, the preview page in your browser updates.
+
+### Markdown in 2 minutes
+
+| You type | You get |
+|---|---|
+| `## Day 1: Kuala Tahan` | A section heading |
+| `### Smaller heading` | A smaller heading |
+| `**bold**` | **bold** |
+| `*italic*` | *italic* |
+| `- Leech socks` | A bullet point (one per line) |
+| `1. First step` | A numbered list |
+| `> Keep your distance.` | A highlighted quote (shown large, with a gold bar) |
+| `[my Instagram](https://instagram.com/levrongoh)` | A link |
+| `![Owl at dusk](../photos/2026-10-09-dsc02907.jpg)` | A photo (see [Adding photos to the text](#adding-photos-to-the-text)) |
+| `---` on its own line | A divider line |
+
+- **Paragraphs:** leave an **empty line** between paragraphs. Lines that sit directly under each other are joined into one paragraph.
+- **Notes to yourself:** anything between `<!--` and `-->` is hidden on the site.
+
+### Journal entries
+
+All entries live in `src/content/journal/`, one `.md` file each. The file name becomes the web address: `2026-05-tangkoko.md` appears at `/journal/2026-05-tangkoko/`.
+
+#### Start a new entry
 ```bash
 npm run new-entry
 ```
-This creates a file in `src/content/journal/`. Write your story below the second `---` line. The text uses simple formatting:
-- `## Heading`
-- `**bold**`
-- `- bullet points`
-- `![description](../photos/PHOTO-NAME.jpg)` to show one of your gallery photos inside the story
+Answer the questions. This creates a file named like `2026-11-sungei-buloh.md`, marked as a draft.
 
-Delete the `draft: true` line when it's ready to publish.
+#### Anatomy of an entry
+Everything between the two `---` lines is the **settings block**. Everything below it is your **story**.
+
+```markdown
+---
+title: "Four Kingfishers in Tangkoko"
+date: 2026-05-30
+endDate: 2026-05-31
+location: "Tangkoko Nature Reserve, North Sulawesi"
+country: "Indonesia"
+coords: [1.56, 125.16]
+cover: ../photos/2026-05-30-dsc03173.jpg
+summary: "Two days in North Sulawesi, east of the Wallace Line."
+draft: true
+---
+
+Your story starts here...
+
+## Day 1: The forest floor
+
+More story...
+```
+
+| Setting | What it does |
+|---|---|
+| `title` | The headline. Wrap it in "quotes" |
+| `date` | Start date, `YYYY-MM-DD`. Entries are listed newest first |
+| `endDate` | Optional. For trips longer than a day; shows as "30 May – 31 May 2026" |
+| `location` / `country` | Shown above the title |
+| `coords` | Optional. Puts the trip on the Map page as a ringed pin |
+| `cover` | Optional. The big photo at the top, and the thumbnail in the journal list |
+| `summary` | One sentence, shown on the journal list and in link previews |
+| `draft` | `true` = only visible in your preview. **Delete this line to publish** |
+
+#### Adding photos to the text
+**A photo from your gallery** (easiest). Use its name from `src/content/photos/`:
+```markdown
+![Great-billed Kingfisher on a branch](../photos/2026-05-31-dsc04275.jpg)
+```
+The words in `[ ]` describe the photo for screen readers. They don't appear on the page.
+
+**A photo that isn't in your gallery** (a landscape, a selfie, the boat ride):
+1. Export it as a JPEG and put it in `src/content/journal/`.
+2. Refer to it with `./` (meaning "in this same folder"):
+   ```markdown
+   ![The boat to Kuala Tahan](./boat-ride.jpg)
+   ```
+3. Keep it under about 2400 px wide, so the site stays small.
+
+The same rule applies to `cover:`. Use `../photos/NAME.jpg` for a gallery photo, or `./NAME.jpg` for an image in the journal folder.
+
+#### Linking gallery photos to an entry
+Add `trip: ` followed by the entry's file name (without `.md`) to each photo's `.yaml` file:
+```yaml
+trip: 2026-05-tangkoko
+```
+Those photos then appear in a grid at the bottom of the entry, along with a list of the species and a small map. The photo pages also link back to the entry once it's published.
+
+#### Publishing, renaming and deleting
+- **Publish:** delete the `draft: true` line, then commit and push.
+- **Take an entry offline:** add `draft: true` back.
+- **Rename (changes the web address):** rename the `.md` file, then update `trip:` in its photos to the new name. Old links shared elsewhere will stop working.
+- **Delete:** move the `.md` file to the Bin, along with any images in the journal folder that only it used. Photos still pointing at it with `trip:` keep working; they just stop showing the link. You can remove those lines whenever you like.
+
+> **The three `sample-…` entries** are placeholders and can be deleted. Delete each `.md` file and the `.jpg` with the same name.
+
+### The home page introduction
+
+The "Hi, I'm Levron." text at the top of the home page is in **`src/home.md`**:
+
+```markdown
+---
+greeting: "Hi, I'm Levron."
+---
+
+I photograph birds and wildlife around Singapore...
+```
+
+- Change the big heading with `greeting:`.
+- Write two or three short paragraphs below the `---`, with an empty line between them.
+- **The photo beside it** is your first **Featured** photo. Set it with the photo manager (`npm run rate`) or with `featured: true` in a photo's `.yaml` file.
+
+The other home page sections fill themselves in:
+- **Recent outings:** your last four trips out, grouped by date and place.
+- **A few favourites:** your Featured and 4–5★ photos. Until you've rated any, it shows one photo of each species.
+- **Stories from the field:** your newest published journal entries.
+
+### The About page
+
+The About page is `src/pages/about.md`. Edit it like a journal entry. The settings block only has `title:`, and the `layout:` line must stay exactly as it is.
+
+```markdown
+---
+layout: ../layouts/Prose.astro
+title: About
+---
+
+I'm a wildlife photographer based in Singapore...
+
+## Gear
+
+- Sony A7C II
+```
+
+- **Delete the line** `*This is placeholder text…*` at the top, and replace the paragraphs with your own words. The **Ethics** and **Prints & licensing** sections are suggestions: keep, edit or remove them.
+- **To add a photo of yourself:**
+  1. Create a folder called `assets` inside `src`.
+  2. Put the photo there, for example `src/assets/me.jpg`.
+  3. Write this where you want it to appear:
+     ```markdown
+     ![Me in the field](../assets/me.jpg)
+     ```
+
+### Things that live elsewhere
+Some text on the site doesn't come from these pages. It's set in **`src/site.config.ts`**:
+
+| Setting | Where it shows |
+|---|---|
+| `name` | Top-left of every page and in the footer |
+| `tagline` | Not shown on the page; kept for reference. The home page heading is in `src/home.md` |
+| `description` | Search engine and link-preview text |
+| `basedIn` | Footer ("Based in Singapore") |
+| `social.instagram` | Instagram link in the footer. Use the format `https://instagram.com/levrongoh`, with no `@` |
+| `social.email` | Email link in the footer. Leave it as `''` to hide it |
+
+Keep the 'single quotes' around each value and the comma at the end of the line.
 
 ---
 
-## Part 7: When something goes wrong
+## Part 8: When something goes wrong
 
 | Problem | Fix |
 |---|---|
-| **Red ✗ in the Actions tab** | Click the failed run → **build** → read the red lines. It's almost always a typo in a `.yaml` file: a misspelled category, a missing space after `:`, or a `trip:` that doesn't match a journal file name. Fix it, then commit and push again. Your old site stays online until the fix goes through. |
+| **Red ✗ in the Actions tab** | Click the failed run → **build** → read the red lines. It's almost always a typo: a misspelled category or a missing space after `:` in a `.yaml` file, or a photo path in a journal entry that doesn't match a real file. Fix it, then commit and push again. Your old site stays online until the fix goes through. |
 | **Photo isn't showing** | Check for `hidden: true` in its `.yaml` file. The photo might also be further down the list: unrated photos appear after rated ones, oldest first. |
 | **Journal entry isn't showing** | It still has `draft: true`. |
+| **Text in a journal entry runs together** | Leave an empty line between paragraphs. |
+| **A photo in a journal entry is broken** | Check the path: `../photos/NAME.jpg` for gallery photos, `./NAME.jpg` for images in the journal folder. Names must match exactly, including `.jpg`. |
 | **Site hasn't updated** | Did you click **Push origin**? Check the **Actions** tab for a green ✓, then hard-refresh your browser (⌘ Shift R). |
 | **`npm: command not found`** | Install [Node.js](https://nodejs.org) (LTS), then close and reopen Terminal. |
 | **`npm run dev` says the port is in use** | Another preview is still running. Close the other Terminal window, or use the address it prints (for example `localhost:4322`). |

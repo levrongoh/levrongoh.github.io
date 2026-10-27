@@ -21,7 +21,9 @@ interface Props {
 }
 const { photo, prev, next, all } = Astro.props;
 const d = photo.data;
-const trip = d.trip ? await getEntry(d.trip) : undefined;
+const linked = d.trip ? await getEntry(d.trip) : undefined;
+// Don't link to a draft entry on the live site (it isn't published yet).
+const trip = linked && (import.meta.env.DEV || !linked.data.draft) ? linked : undefined;
 const og = await getImage({ src: d.image, width: 1200, format: 'jpg', quality: IMG.quality });
 const related = all
   .filter((p) => p.id !== photo.id && ((d.species && p.data.species === d.species) || (d.trip && p.data.trip?.id === d.trip.id)))

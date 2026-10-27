@@ -3,66 +3,130 @@ import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import PhotoGrid from '../components/PhotoGrid.astro';
 import JournalCard from '../components/JournalCard.astro';
-import { IMG, confirmedSpecies, getEntries, getPhotos, placeName } from '../lib/content';
-import { site } from '../site.config';
+import { IMG, confirmedSpecies, formatDate, getEntries, getPhotos, type Photo } from '../lib/content';
+import { Content as Intro, frontmatter as intro } from '../home.md';
 
-const photos = await getPhotos();
+const photos = await getPhotos(); // already ordered: most stars first, then oldest
 const entries = await getEntries();
-const featured = photos.filter((p) => p.data.featured);
-const hero = featured[0] ?? photos[0];
-const grid = (featured.length ? featured : photos).slice(0, 9);
 
-const species = new Set(photos.map(confirmedSpecies).filter(Boolean)).size;
-const places = new Set(photos.map((p) => p.data.location).filter((l) => l !== 'TBC')).size;
-const countries = new Set(photos.map((p) => p.data.country).filter(Boolean)).size;
+const newestFirst = (a: Photo, b: Photo) => b.data.date.valueOf() - a.data.date.valueOf();
+const identified = photos.filter(confirmedSpecies);
+
+// Favourites: the photos you've featured or rated 4–5 stars. Until you've
+// picked any, show one photo of each species (newest first) for variety.
+let favourites = photos.filter((p) => p.data.featured || p.data.rating >= 4);
+if (!favourites.length) {
+  const seen = new Set<string>();
+  favourites = [...identified].sort(newestFirst).filter((p) => {
+    const s = confirmedSpecies(p)!;
+    return !seen.has(s) && seen.add(s);
+  });
+}
+// The photo next to your introduction: first featured, else the first favourite.
+const portrait = photos.find((p) => p.data.featured) ?? favourites[0] ?? photos[0];
+favourites = favourites.filter((p) => p !== portrait).slice(0, 9);
+
+// Recent outings: photos grouped by day and place, newest first.
+const outings = Object.values(
+  Object.groupBy(
+    [...photos].filter((p) => p.data.location !== 'TBC').sort(newestFirst),
+    (p) => `${p.data.date.toISOString().slice(0, 10)}|${p.data.location}`,
+  ),
+)
+  .slice(0, 4)
+  .map((list) => ({
+    date: list![0].data.date,
+    location: list![0].data.location,
+    country: list![0].data.country,
+    species: [...new Set(list!.map(confirmedSpecies).filter(Boolean))],
+    // Best-rated frames from the outing first (the list keeps the site order).
+    thumbs: photos.filter((p) => list!.includes(p)).slice(0, 5),
+    count: list!.length,
+  }));
 ---
 
 <Base>
+  <section class="intro wrap">
+    <div class="intro-text">
+      <p class="eyebrow">Wildlife photography · Singapore</p>
+      <h1>{intro.greeting}</h1>
+      <div class="intro-body"><Intro /></div>
+      <p class="intro-links">
+        <a href="/gallery/">See my photos →</a>
+        <a href="/journal/">Read the journal →</a>
+        <a href="/about/">More about me →</a>
+      </p>
+    </div>
+    {
+      portrait && (
+        <figure class="intro-photo">
+          <a href={`/photos/${portrait.id}/`}>
+            <Image
+              src={portrait.data.image}
+              alt={portrait.data.alt ?? portrait.data.species ?? portrait.data.title}
+              widths={IMG.grid}
+              quality={IMG.quality}
+              sizes="(max-width: 860px) 100vw, 45vw"
+              loading="eager"
+              fetchpriority="high"
+            />
+          </a>
+          <figcaption>
+            {portrait.data.species ?? portrait.data.title}, {portrait.data.location} ·{' '}
+            {formatDate(portrait.data.date, { month: 'short', year: 'numeric' })}
+          </figcaption>
+        </figure>
+      )
+    }
+  </section>
+
   {
-    hero && (
-      <section class="hero">
-        <Image
-          src={hero.data.image}
-          alt={hero.data.alt ?? hero.data.species ?? hero.data.title}
-          widths={IMG.large}
-          quality={IMG.quality}
-          sizes="100vw"
-          loading="eager"
-          fetchpriority="high"
-        />
-        <div class="hero-text wrap">
-          <p class="eyebrow">Wildlife & Nature Photography</p>
-          <h1>{site.tagline}</h1>
-          <p class="credit">
-            <a href={`/photos/${hero.id}/`}>
-              {hero.data.species ?? hero.data.title} · {placeName(hero.data)}
-            </a>
-          </p>
+    outings.length > 0 && (
+      <section class="section wrap">
+        <div class="section-head">
+          <h2>Recent outings</h2>
+          <a class="link-arrow" href="/map/">Where I've been →</a>
         </div>
+        <ol class="outings">
+          {outings.map((o) => (
+            <li>
+              <p class="day">
+                <strong>{formatDate(o.date, { day: 'numeric' })}</strong>
+                <span>{formatDate(o.date, { month: 'short', year: 'numeric' })}</span>
+              </p>
+              <div class="outing">
+                <h3>{o.location}{o.country && o.country !== 'Singapore' && <span class="muted">, {o.country}</span>}</h3>
+                <p class="muted">
+                  {o.species.length ? o.species.join(' · ') : `${o.count} photo${o.count > 1 ? 's' : ''}`}
+                </p>
+                <div class="thumbs">
+                  {o.thumbs.map((p) => (
+                    <a href={`/photos/${p.id}/`} title={p.data.species ?? p.data.title}>
+                      <Image src={p.data.image} alt={p.data.species ?? p.data.title} width={240} height={240} fit="cover" quality={IMG.quality} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
       </section>
     )
   }
 
-  <section class="stats wrap">
-    <div><strong>{photos.length}</strong><span>Photographs</span></div>
-    <div><strong>{species}</strong><span>Species</span></div>
-    <div><strong>{places}</strong><span>Places</span></div>
-    <div><strong>{countries}</strong><span>Countries</span></div>
-  </section>
-
   <section class="section wrap">
     <div class="section-head">
-      <h2>Selected work</h2>
-      <a class="link-arrow" href="/gallery/">Full gallery →</a>
+      <h2>A few favourites</h2>
+      <a class="link-arrow" href="/gallery/">All {photos.length} photos →</a>
     </div>
-    <PhotoGrid photos={grid} />
+    <PhotoGrid photos={favourites} />
   </section>
 
   {
     entries.length > 0 && (
       <section class="section wrap">
         <div class="section-head">
-          <h2>From the field journal</h2>
+          <h2>Stories from the field</h2>
           <a class="link-arrow" href="/journal/">All entries →</a>
         </div>
         <div class="cards">
@@ -76,42 +140,55 @@ const countries = new Set(photos.map((p) => p.data.country).filter(Boolean)).siz
 </Base>
 
 <style>
-  .hero {
-    position: relative;
-    height: min(88vh, 900px);
-    min-height: 460px;
-    overflow: hidden;
-  }
-  .hero img { width: 100%; height: 100%; object-fit: cover; }
-  .hero::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 30%, rgba(17, 17, 14, 0.92));
-  }
-  .hero-text {
-    position: absolute;
-    z-index: 1;
-    inset: auto 0 clamp(28px, 6vw, 72px) 0;
-  }
-  .hero-text h1 { max-width: 18ch; color: #fff; }
-  .hero-text .eyebrow { color: #d8d2c4; }
-  .credit { margin: 0; font-size: 0.85rem; }
-  .credit a { color: #d8d2c4; text-decoration: none; }
-  .credit a:hover { color: var(--accent); }
-
-  .stats {
+  .intro {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    padding-top: 2.5rem;
-    padding-bottom: 0.5rem;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: center;
+    padding-top: clamp(40px, 8vw, 100px);
+    padding-bottom: clamp(24px, 4vw, 48px);
   }
-  .stats div { border-left: 1px solid var(--line); padding-left: 1rem; }
-  .stats strong { display: block; font: 300 clamp(1.8rem, 4vw, 2.8rem) / 1 var(--serif); }
-  .stats span { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .intro h1 { font-size: clamp(2.6rem, 6vw, 4.6rem); margin-bottom: 0.4em; }
+  .intro-body { font-size: clamp(1.05rem, 1.6vw, 1.2rem); line-height: 1.75; max-width: 34em; }
+  .intro-body :global(p) { margin: 0 0 1em; }
+  .intro-links { display: flex; flex-wrap: wrap; gap: 0.6rem 1.75rem; margin: 1.75rem 0 0; }
+  .intro-links a { text-decoration: none; font-size: 0.95rem; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+  .intro-links a:hover { border-color: var(--accent); }
+  .intro-photo { margin: 0; }
+  .intro-photo img {
+    width: 100%;
+    max-height: 78vh;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .intro-photo figcaption { margin-top: 0.75rem; font-size: 0.82rem; color: var(--muted); font-style: italic; }
+  @media (max-width: 860px) {
+    .intro { grid-template-columns: 1fr; }
+  }
+
+  .outings { list-style: none; margin: 0; padding: 0; }
+  .outings li {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 1rem 2rem;
+    padding: 1.75rem 0;
+    border-top: 1px solid var(--line);
+  }
+  .outings li:last-child { border-bottom: 1px solid var(--line); }
+  .day { margin: 0; display: flex; flex-direction: column; }
+  .day strong { font: 300 2.6rem / 1 var(--serif); }
+  .day span { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-top: 0.3rem; }
+  .outing h3 { margin: 0 0 0.25rem; font-size: 1.4rem; }
+  .outing p { margin: 0 0 1rem; font-size: 0.92rem; }
+  .thumbs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .thumbs a { flex: 0 0 auto; }
+  .thumbs img { width: 120px; height: 120px; object-fit: cover; border-radius: 3px; transition: filter 0.3s; }
+  .thumbs a:hover img { filter: brightness(0.8); }
   @media (max-width: 560px) {
-    .stats { grid-template-columns: repeat(2, 1fr); row-gap: 1.5rem; }
+    .outings li { grid-template-columns: 1fr; gap: 0.5rem; }
+    .day { flex-direction: row; align-items: baseline; gap: 0.6rem; }
+    .day strong { font-size: 1.8rem; }
+    .thumbs img { width: 96px; height: 96px; }
   }
 
   .cards {
