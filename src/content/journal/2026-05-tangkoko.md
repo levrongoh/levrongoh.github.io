@@ -25,6 +25,8 @@ As this was my first time photographing wildlife, there were still a ton of sett
 
 Later that morning, a **Lilac Kingfisher** sat on a bare branch long enough for a few frames. This one is also a core memory, because it wasn't our guide who found it: Grace, my partner, spotted the kingfisher perched perfectly on a branch in good light. A perfect way to cap off our morning trek in Tangkoko.
 
+![Lilac Kingfisher perched on a bare branch](../photos/2026-05-30-dsc03454.jpg)
+
 After an incredible day, we asked our host Ardy, a birder himself, what we could do the next day, and he suggested a mangrove tour to look for the **Great-billed Kingfisher**.
 
 ## Day 2: The big bill and the tiny one
