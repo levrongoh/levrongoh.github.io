@@ -8,6 +8,6 @@ greeting: "Hi, I'm Levron."
   and what people will find here. Two or three short paragraphs works best.
 -->
 
-I photograph birds and wildlife around Singapore. Most of my time behind the camera is spent at Pasir Ris Park and the Singapore Botanic Gardens, usually waiting on owls and kingfishers.
+I have a passion for wildlife photography, camping and the outdoors.
 
-This site is where I keep those photos and the stories behind them, from everyday encounters close to home to the occasional trip further afield, like the forests of Tangkoko in North Sulawesi.
+This site is where I keep my photos and the stories behind them, from everyday encounters close to home to the occasional trip further away. I hope you enjoy them.
