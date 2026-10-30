@@ -3,11 +3,9 @@ layout: ../layouts/Prose.astro
 title: About
 ---
 
-*This is placeholder text. Edit `src/pages/about.md` to tell your own story.*
+I'm a wildlife and nature photography enthusiast based in Singapore. It isn't always easy to find time to go birding or take a walk, but we make time for the things we love and the things that heal us, and so far it's been working.
 
-I'm a wildlife and nature photographer based in Singapore. Most mornings you'll find me on a boardwalk at Sungei Buloh, in the forests of Bukit Timah, or waiting by a lake for an owl that may or may not show up.
-
-This site is part portfolio, part field journal: a record of the places I've been and the animals I've been lucky enough to meet.
+This site is part portfolio, part field journal: a record of the places I've been and the animals I've been lucky enough to meet. It's a true joy to learn about the animals that share the space around us, and each encounter is a chance to learn more about their behaviour and quirks.
 
 ## Ethics in the field
 
@@ -18,11 +16,14 @@ This site is part portfolio, part field journal: a record of the places I've bee
 ## Gear
 
 - Sony A7C II
-- Sony FE 100–400mm F4.5–5.6 GM OSS
+- Sony FE 100–400mm F4.5–5.6 GM OSS (borrowed)
 - Tamron 70–300mm F4.5–6.3 Di III RXD
 - Sony FE 20–70mm F4 G
 - A lot of patience
 
-## Prints & licensing
+## Get in touch
 
-For prints, licensing, or just to say hello, get in touch.
+Happy to have you here! Whether you have a question about a photo, are interested in a print, or just want to say hello, feel free to reach out.
+
+- **Email:** [levrongoh@gmail.com](mailto:levrongoh@gmail.com)
+- **Instagram:** [@levrongoh](https://instagram.com/levrongoh)

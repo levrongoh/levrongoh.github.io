@@ -5,6 +5,7 @@ import PhotoGrid from '../components/PhotoGrid.astro';
 import JournalCard from '../components/JournalCard.astro';
 import { IMG, confirmedSpecies, formatDate, getEntries, getPhotos, type Photo } from '../lib/content';
 import { Content as Intro, frontmatter as intro } from '../home.md';
+import { site } from '../site.config';
 
 const photos = await getPhotos(); // already ordered: featured first, then most stars, then newest
 const entries = await getEntries();
@@ -56,6 +57,20 @@ const outings = Object.values(
         <a href="/journal/">Read the journal →</a>
         <a href="/about/">More about me →</a>
       </p>
+      {
+        (site.social.email || site.social.instagram) && (
+          <p class="intro-contact">
+            Say hello:
+            {site.social.email && <a href={`mailto:${site.social.email}`}>{site.social.email}</a>}
+            {site.social.email && site.social.instagram && <span aria-hidden="true">·</span>}
+            {site.social.instagram && (
+              <a href={site.social.instagram} rel="me">
+                @{site.social.instagram.replace(/\/$/, '').split('/').pop()} on Instagram
+              </a>
+            )}
+          </p>
+        )
+      }
     </div>
     {
       portrait && (
@@ -154,6 +169,9 @@ const outings = Object.values(
   .intro-links { display: flex; flex-wrap: wrap; gap: 0.6rem 1.75rem; margin: 1.75rem 0 0; }
   .intro-links a { text-decoration: none; font-size: 0.95rem; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
   .intro-links a:hover { border-color: var(--accent); }
+  .intro-contact { display: flex; flex-wrap: wrap; gap: 0.4rem 0.6rem; margin: 1.25rem 0 0; font-size: 0.88rem; color: var(--muted); }
+  .intro-contact a { color: var(--text); }
+  .intro-contact a:hover { color: var(--accent); }
   .intro-photo { margin: 0; }
   .intro-photo img {
     width: 100%;
