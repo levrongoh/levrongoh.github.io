@@ -3,6 +3,8 @@ layout: ../layouts/Prose.astro
 title: About
 ---
 
+![Levron crouched beside a hedge, photographing with a telephoto lens](../assets/about-me.jpg)
+
 I'm a wildlife and nature photography enthusiast based in Singapore. It isn't always easy to find time to go birding or take a walk, but we make time for the things we love and the things that heal us, and so far it's been working.
 
 This site is part portfolio, part field journal: a record of the places I've been and the animals I've been lucky enough to meet. It's a true joy to learn about the animals that share the space around us, and each encounter is a chance to learn more about their behaviour and quirks.

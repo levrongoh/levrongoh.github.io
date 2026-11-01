@@ -23,9 +23,11 @@ if (!favourites.length) {
     return !seen.has(s) && seen.add(s);
   });
 }
-// The photo next to your introduction: first featured, else the first favourite.
-const portrait = photos.find((p) => p.data.featured) ?? favourites[0] ?? photos[0];
-favourites = favourites.filter((p) => p !== portrait).slice(0, 9);
+// The slideshow next to your introduction: your 9 newest featured photos.
+// Until you've featured any, it falls back to your top favourites.
+const featured = photos.filter((p) => p.data.featured).sort(newestFirst);
+const slides = (featured.length ? featured : favourites.length ? favourites : photos).slice(0, 9);
+favourites = favourites.filter((p) => !slides.includes(p)).slice(0, 9);
 
 // Recent outings: photos grouped by day and place, newest first.
 const outings = Object.values(
@@ -73,22 +75,45 @@ const outings = Object.values(
       }
     </div>
     {
-      portrait && (
-        <figure class="intro-photo">
-          <a href={`/photos/${portrait.id}/`}>
-            <Image
-              src={portrait.data.image}
-              alt={portrait.data.alt ?? portrait.data.species ?? portrait.data.title}
-              widths={IMG.grid}
-              quality={IMG.quality}
-              sizes="(max-width: 860px) 100vw, 45vw"
-              loading="eager"
-              fetchpriority="high"
-            />
-          </a>
+      slides.length > 0 && (
+        <figure class="intro-photo" data-carousel aria-roledescription="carousel" aria-label="Recent featured photos">
+          <div class="slides">
+            {slides.map((p, i) => (
+              <a
+                class="slide"
+                href={`/photos/${p.id}/`}
+                aria-hidden={i > 0 ? 'true' : undefined}
+                tabindex={i > 0 ? -1 : undefined}
+                data-caption={`${p.data.species ?? p.data.title}, ${p.data.location} · ${formatDate(p.data.date, { month: 'short', year: 'numeric' })}`}
+              >
+                <Image
+                  src={p.data.image}
+                  alt={p.data.alt ?? p.data.species ?? p.data.title}
+                  widths={IMG.grid}
+                  quality={IMG.quality}
+                  sizes="(max-width: 860px) 100vw, 45vw"
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  fetchpriority={i === 0 ? 'high' : undefined}
+                />
+              </a>
+            ))}
+          </div>
           <figcaption>
-            {portrait.data.species ?? portrait.data.title}, {portrait.data.location} ·{' '}
-            {formatDate(portrait.data.date, { month: 'short', year: 'numeric' })}
+            <span class="caption" data-caption-text aria-live="polite">
+              {slides[0].data.species ?? slides[0].data.title}, {slides[0].data.location} ·{' '}
+              {formatDate(slides[0].data.date, { month: 'short', year: 'numeric' })}
+            </span>
+            {slides.length > 1 && (
+              <span class="nav">
+                <button type="button" data-prev aria-label="Previous photo">←</button>
+                <span class="dots">
+                  {slides.map((_, i) => (
+                    <button type="button" data-dot={i} aria-label={`Photo ${i + 1} of ${slides.length}`} aria-current={i === 0 ? 'true' : undefined} />
+                  ))}
+                </span>
+                <button type="button" data-next aria-label="Next photo">→</button>
+              </span>
+            )}
           </figcaption>
         </figure>
       )
@@ -173,15 +198,39 @@ const outings = Object.values(
   .intro-contact a { color: var(--text); }
   .intro-contact a:hover { color: var(--accent); }
   .intro-photo { margin: 0; }
-  .intro-photo img {
-    width: 100%;
+  .slides {
+    position: relative;
+    aspect-ratio: 4 / 5;
     max-height: 78vh;
-    object-fit: cover;
+    width: 100%;
+    overflow: hidden;
     border-radius: 4px;
+    background: var(--bg-raised);
+    touch-action: pan-y;
   }
-  .intro-photo figcaption { margin-top: 0.75rem; font-size: 0.82rem; color: var(--muted); font-style: italic; }
+  .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.9s ease; pointer-events: none; }
+  .slide.active { opacity: 1; pointer-events: auto; }
+  .slide img { width: 100%; height: 100%; object-fit: cover; }
+  .intro-photo figcaption {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .caption { font-style: italic; }
+  .nav { display: flex; align-items: center; gap: 0.5rem; flex: none; }
+  .nav button { background: none; border: 0; color: var(--muted); cursor: pointer; font: inherit; padding: 0.25rem; }
+  .nav button:hover { color: var(--text); }
+  .dots { display: flex; gap: 6px; }
+  .dots button { width: 6px; height: 6px; padding: 0; border-radius: 50%; background: var(--line); }
+  .dots button[aria-current='true'] { background: var(--text); }
+  @media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
   @media (max-width: 860px) {
     .intro { grid-template-columns: 1fr; }
+    .slides { aspect-ratio: 4 / 3; }
   }
 
   .outings { list-style: none; margin: 0; padding: 0; }
@@ -215,3 +264,59 @@ const outings = Object.values(
     gap: 2.5rem 1.75rem;
   }
 </style>
+
+<script>
+  // Home page slideshow: crossfades every 6 seconds, pauses while you hover or
+  // use the controls, and can be swiped on a phone.
+  const root = document.querySelector<HTMLElement>('[data-carousel]');
+  if (root) {
+    const slides = [...root.querySelectorAll<HTMLElement>('.slide')];
+    const dots = [...root.querySelectorAll<HTMLButtonElement>('[data-dot]')];
+    const caption = root.querySelector<HTMLElement>('[data-caption-text]')!;
+    let current = 0;
+    let timer: number | undefined;
+
+    const show = (i: number) => {
+      current = (i + slides.length) % slides.length;
+      slides.forEach((s, n) => {
+        const on = n === current;
+        s.classList.toggle('active', on);
+        if (on) s.removeAttribute('aria-hidden');
+        else s.setAttribute('aria-hidden', 'true');
+        s.tabIndex = on ? 0 : -1;
+        if (on) s.querySelector('img')?.setAttribute('loading', 'eager');
+      });
+      dots.forEach((d, n) => d.setAttribute('aria-current', String(n === current)));
+      caption.textContent = slides[current].dataset.caption!;
+      // Start loading the next photo so it's ready before it fades in.
+      slides[(current + 1) % slides.length].querySelector('img')?.setAttribute('loading', 'eager');
+    };
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const stop = () => clearInterval(timer);
+    const play = () => {
+      stop();
+      if (!reduced && slides.length > 1) timer = window.setInterval(() => show(current + 1), 6000);
+    };
+
+    root.querySelector('[data-prev]')?.addEventListener('click', () => { show(current - 1); play(); });
+    root.querySelector('[data-next]')?.addEventListener('click', () => { show(current + 1); play(); });
+    dots.forEach((d, n) => d.addEventListener('click', () => { show(n); play(); }));
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', play);
+    root.addEventListener('focusin', stop);
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : play()));
+
+    let startX: number | null = null;
+    const box = root.querySelector<HTMLElement>('.slides')!;
+    box.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') startX = e.clientX; });
+    box.addEventListener('pointerup', (e) => {
+      if (startX === null) return;
+      const dx = e.clientX - startX;
+      startX = null;
+      if (Math.abs(dx) > 40) { show(current + (dx < 0 ? 1 : -1)); play(); }
+    });
+
+    show(0);
+    play();
+  }
+</script>

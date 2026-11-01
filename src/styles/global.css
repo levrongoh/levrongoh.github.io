@@ -78,6 +78,13 @@ h3 { font-size: 1.25rem; }
 .prose h2 { margin-top: 2.2em; font-size: 1.7rem; }
 .prose h3 { margin-top: 1.8em; }
 .prose img { border-radius: 4px; margin: 2rem 0; }
+/* A photo at the very top of a page (e.g. About) sits beside the opening text. */
+.prose > p:first-child:has(> img:only-child) { float: right; width: 40%; margin: 0.35rem 0 1.25rem 2rem; }
+.prose > p:first-child:has(> img:only-child) img { margin: 0; }
+.prose h2 { clear: both; }
+@media (max-width: 560px) {
+  .prose > p:first-child:has(> img:only-child) { float: none; width: auto; margin: 0 0 1.5rem; }
+}
 .prose blockquote {
   margin: 2rem 0;
   padding-left: 1.25rem;
